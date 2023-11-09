@@ -1,51 +1,13 @@
+const fs = require("fs");
 const Event = require("../models/eventModel");
 const User = require("../models/userModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongoDbId");
 const slugify = require("slugify");
+const cloudinaryUploadImage = require("../utils/cloudinary");
 
 const createEvent = asyncHandler(async (req, res) => {
-  const {
-    eventname,
-    type,
-    startdate,
-    enddate,
-    starttime,
-    endtime,
-    permanent,
-    location,
-    city,
-    country,
-    state,
-    zipcode,
-    latitude,
-    longitude,
-    website,
-    description,
-    featureimage,
-    images,
-  } = req.body;
-
-  const event = await Event.create({
-    eventname,
-    type,
-    startdate,
-    enddate,
-    starttime,
-    endtime,
-    permanent,
-    location,
-    city,
-    country,
-    state,
-    zipcode,
-    latitude,
-    longitude,
-    website,
-    description,
-    featureimage,
-    images,
-  });
+  const event = await Event.create(req.body);
 
   if (event) {
     const userId = req.user._id;
@@ -54,32 +16,10 @@ const createEvent = asyncHandler(async (req, res) => {
     });
   }
 
-  if (event) {
-    res.status(201).json({
-      _id: event._id,
-      eventname: event.eventname,
-      type: event.type,
-      startdate: event.startdate,
-      enddate: event.enddate,
-      starttime: event.starttime,
-      endtime: event.endtime,
-      permanent: event.permanent,
-      location: event.location,
-      city: event.city,
-      country: event.country,
-      state: event.state,
-      zipcode: event.zipcode,
-      latitude: event.latitude,
-      longitude: event.longitude,
-      website: event.website,
-      description: event.description,
-      featureimage: event.featureimage,
-      images: event.images,
-    });
-  } else {
-    res.status(400);
-    throw new Error("Invalid event data");
-  }
+  res.send({
+    data: event,
+    status: true,
+  });
 });
 
 const getSingleEvent = asyncHandler(async (req, res) => {
@@ -219,6 +159,62 @@ const removeEventFavorite = asyncHandler(async (req, res) => {
   }
 });
 
+const uploadImages = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  validateMongoDbId(id);
+  try {
+    const uploader = (path) => cloudinaryUploadImage(path, "images");
+    const urls = [];
+    const files = req.files;
+    for (const file of files) {
+      const { path } = file;
+      const newPath = await uploader(path);
+      urls.push(newPath);
+      fs.unlinkSync(path);
+    }
+    const findEvent = await Event.findByIdAndUpdate(
+      id,
+      {
+        images: urls.map((file) => {
+          return file;
+        }),
+      },
+      { new: true }
+    );
+    res.json(findEvent);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const uploadFeatureImage = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  validateMongoDbId(id);
+  try {
+    const uploader = (path) => cloudinaryUploadImage(path, "featureimage");
+    const urls = [];
+    const files = req.files;
+    for (const file of files) {
+      const { path } = file;
+      const newPath = await uploader(path);
+      urls.push(newPath);
+      fs.unlinkSync(path);
+    }
+    const findEvent = await Event.findByIdAndUpdate(
+      id,
+      {
+        featureimage: urls.map((file) => {
+          return file;
+        }),
+      },
+      { new: true }
+    );
+    res.json(findEvent);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
 module.exports = {
   createEvent,
   getSingleEvent,
@@ -227,4 +223,6 @@ module.exports = {
   updateEvent,
   addEventFavorite,
   removeEventFavorite,
+  uploadImages,
+  uploadFeatureImage,
 };

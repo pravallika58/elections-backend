@@ -10,15 +10,20 @@ const registerUser = asyncHandler(async (req, res) => {
   const { firstname, lastname, email, password, confirmpassword } = req.body;
 
   if (password !== confirmpassword) {
-    res.status(400);
-    throw new Error("Password and Confirm Password do not match");
+    res.status(400).send({
+      status: false,
+      message: "Password and Confirm Password do not match",
+    });
+    return;
   }
 
   const userExists = await User.findOne({ email });
 
   if (userExists) {
-    res.status(400);
-    throw new Error("User already exists");
+    return res.status(400).send({
+      status: false,
+      message: "User already exists",
+    });
   }
 
   const user = await User.create({
@@ -29,19 +34,10 @@ const registerUser = asyncHandler(async (req, res) => {
     confirmpassword,
   });
 
-  if (user) {
-    res.status(201).json({
-      _id: user._id,
-      firstname: user.firstname,
-      lastname: user.lastname,
-      email: user.email,
-      password: user.password,
-      confirmpassword: user.confirmpassword,
-    });
-  } else {
-    res.status(400);
-    throw new Error("Invalid user data");
-  }
+  res.send({
+    data: user,
+    status: true,
+  });
 });
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -62,17 +58,15 @@ const loginUser = asyncHandler(async (req, res) => {
       httpOnly: true,
       maxAge: 72 * 60 * 60 * 1000,
     });
-    res.json({
-      id: findUser?._id,
-      firstname: findUser?.firstname,
-      lastname: findUser?.lastname,
-      email: findUser?.email,
-      password: findUser?.password,
-      mobile: findUser?.mobile,
-      token: generateToken(findUser?._id),
+    res.send({
+      data: updatingUser,
+      status: true,
     });
   } else {
-    throw new Error("Invalid email or password");
+    res.status(400).send({
+      status: false,
+      message: "Invalid email or password",
+    });
   }
 });
 
@@ -119,7 +113,10 @@ const logOut = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: true,
   });
-  res.sendStatus(204);
+  res.sendStatus(204).send({
+    status: true,
+    message: "Log out successfully",
+  });
 });
 
 const resetPassword = asyncHandler(async (req, res) => {
@@ -171,7 +168,10 @@ const updateUser = asyncHandler(async (req, res) => {
         new: true,
       }
     );
-    res.json(updateUser);
+    res.send({
+      data: updateUser,
+      status: true,
+    });
   } catch (error) {
     throw new Error(error);
   }

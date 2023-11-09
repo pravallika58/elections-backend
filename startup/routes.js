@@ -15,9 +15,9 @@ module.exports = function (app) {
   app.use(morgan("dev"));
   app.use(cookie());
 
-  app.use("/api/user", authRouter);
-  app.use("/api/event", eventRouter);
+  app.use("/api", authRouter);
+  app.use("/api", eventRouter);
   // app.use("/api/stripe", stripeRouter);
-  app.use("/api/contact", contactRouter);
-  app.use("/api/rating", ratingRouter);
+  app.use("/api", contactRouter);
+  app.use("/api", ratingRouter);
 };

@@ -54,11 +54,12 @@ const eventSchema = new mongoose.Schema(
       type: String,
     },
     featureimage: {
-      type: String,
+      type: Array,
     },
     images: {
       type: Array,
     },
+
     isLiked: {
       type: Boolean,
       default: false,
