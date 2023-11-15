@@ -28,18 +28,23 @@ const eventSchema = new mongoose.Schema(
     },
     location: {
       type: String,
+      required: true,
     },
     city: {
       type: String,
+      required: true,
     },
     country: {
       type: String,
+      required: true,
     },
     state: {
       type: String,
+      required: true,
     },
     zipcode: {
       type: String,
+      required: true,
     },
     latitude: {
       type: String,
@@ -54,15 +59,18 @@ const eventSchema = new mongoose.Schema(
       type: String,
     },
     featureimage: {
-      type: Array,
+      type: String,
     },
     images: {
       type: Array,
+      required: true,
     },
-
     isLiked: {
       type: Boolean,
       default: false,
+    },
+    eventcreator: {
+      type: String,
     },
     likedBy: [
       {

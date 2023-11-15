@@ -8,7 +8,7 @@ const multerStorage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + "-" + uniqueSuffix + ".png");
+    cb(null, file.fieldname + "-" + uniqueSuffix + ".jpeg");
   },
 });
 
@@ -31,7 +31,7 @@ const uploadPhoto = multer({
   limits: { fieldSize: 2000000 },
 });
 
-const eventsImages = async (req, res, next) => {
+const eventImages = async (req, res, next) => {
   if (!req.files) return next();
   await Promise.all(
     req.files.map(async (file) => {
@@ -39,26 +39,26 @@ const eventsImages = async (req, res, next) => {
         .resize(300, 300)
         .toFormat("jpeg")
         .jpeg({ quality: 90 })
-        .toFile(`public/images/eventImages/${file.filename}`);
-      fs.unlinkSync(`public/images/eventImages/${file.filename}`);
+        .toFile(`public/images/EventImages/${file.filename}`);
+      fs.unlinkSync(`public/images/EventImages/${file.filename}`);
     })
   );
   next();
 };
 
-const featureImage = async (req, res, next) => {
-  if (!req.files) return next();
-  await Promise.all(
-    req.files.map(async (file) => {
-      await sharp(file.path)
-        .resize(300, 300)
-        .toFormat("jpeg")
-        .jpeg({ quality: 90 })
-        .toFile(`public/images/featureImage/${file.filename}`);
-      fs.unlinkSync(`public/images/featureImage/${file.filename}`);
-    })
-  );
-  next();
-};
+// const blogImgResize = async (req, res, next) => {
+//   if (!req.files) return next();
+//   await Promise.all(
+//     req.files.map(async (file) => {
+//       await sharp(file.path)
+//         .resize(300, 300)
+//         .toFormat("jpeg")
+//         .jpeg({ quality: 90 })
+//         .toFile(`public/images/blogs/${file.filename}`);
+//       fs.unlinkSync(`public/images/blogs/${file.filename}`);
+//     })
+//   );
+//   next();
+// };
 
-module.exports = { uploadPhoto, eventsImages, featureImage };
+module.exports = { uploadPhoto, eventImages };

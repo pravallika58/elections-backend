@@ -7,19 +7,43 @@ const slugify = require("slugify");
 const cloudinaryUploadImage = require("../utils/cloudinary");
 
 const createEvent = asyncHandler(async (req, res) => {
-  const event = await Event.create(req.body);
-
-  if (event) {
-    const userId = req.user._id;
-    await User.findByIdAndUpdate(userId, {
-      $push: { events: event._id },
+  try {
+    const uploader = (path) => cloudinaryUploadImage(path, "images");
+    const urls = [];
+    const files = req.files;
+    for (const file of files) {
+      const { path } = file;
+      const newPath = await uploader(path);
+      urls.push(newPath);
+      fs.unlinkSync(path);
+    }
+    const { firstname, lastname } = req.user;
+    const event = await Event.create({
+      images: urls.map((file) => {
+        return file;
+      }),
+      eventcreator: `${firstname} ${lastname}`,
+      ...req.body,
     });
-  }
 
-  res.send({
-    data: event,
-    status: true,
-  });
+    if (event) {
+      const userId = req.user._id;
+      await User.findByIdAndUpdate(userId, {
+        $push: { events: event._id },
+      });
+    }
+    const isMe = event.eventcreator === `${firstname} ${lastname}`;
+
+    res.send({
+      data: {
+        event,
+        isMe,
+      },
+      status: true,
+    });
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 const getSingleEvent = asyncHandler(async (req, res) => {
@@ -89,18 +113,46 @@ const deleteEvent = asyncHandler(async (req, res) => {
 });
 
 const updateEvent = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  validateMongoDbId(id);
   try {
-    if (req.body.eventname) {
-      req.body.slug = slugify(req.body.eventname);
+    const uploader = (path) => cloudinaryUploadImage(path, "images");
+    const urls = [];
+    const files = req.files;
+    for (const file of files) {
+      const { path } = file;
+      const newPath = await uploader(path);
+      urls.push(newPath);
+      fs.unlinkSync(path);
     }
-    const updatingProduct = await Event.findByIdAndUpdate(id, req.body, {
-      new: true,
+    const { firstname, lastname } = req.user;
+    const { id } = req.params;
+    validateMongoDbId(id);
+    const updatedEvent = await Event.findByIdAndUpdate(
+      id,
+      {
+        images: urls.map((file) => file),
+        eventcreator: `${firstname} ${lastname}`,
+        ...req.body,
+      },
+      { new: true }
+    );
+
+    if (!updatedEvent) {
+      return res
+        .status(404)
+        .send({ status: false, message: "Event not found" });
+    }
+    const isMe = updatedEvent.eventcreator === `${firstname} ${lastname}`;
+
+    res.send({
+      data: {
+        event: updatedEvent,
+        isMe,
+      },
+      status: true,
     });
-    res.json(updatingProduct);
   } catch (error) {
-    throw new Error(error);
+    console.log(error);
+    res.status(500).send({ status: false, message: "Server error" });
   }
 });
 
@@ -159,62 +211,6 @@ const removeEventFavorite = asyncHandler(async (req, res) => {
   }
 });
 
-const uploadImages = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  validateMongoDbId(id);
-  try {
-    const uploader = (path) => cloudinaryUploadImage(path, "images");
-    const urls = [];
-    const files = req.files;
-    for (const file of files) {
-      const { path } = file;
-      const newPath = await uploader(path);
-      urls.push(newPath);
-      fs.unlinkSync(path);
-    }
-    const findEvent = await Event.findByIdAndUpdate(
-      id,
-      {
-        images: urls.map((file) => {
-          return file;
-        }),
-      },
-      { new: true }
-    );
-    res.json(findEvent);
-  } catch (error) {
-    throw new Error(error);
-  }
-});
-
-const uploadFeatureImage = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  validateMongoDbId(id);
-  try {
-    const uploader = (path) => cloudinaryUploadImage(path, "featureimage");
-    const urls = [];
-    const files = req.files;
-    for (const file of files) {
-      const { path } = file;
-      const newPath = await uploader(path);
-      urls.push(newPath);
-      fs.unlinkSync(path);
-    }
-    const findEvent = await Event.findByIdAndUpdate(
-      id,
-      {
-        featureimage: urls.map((file) => {
-          return file;
-        }),
-      },
-      { new: true }
-    );
-    res.json(findEvent);
-  } catch (error) {
-    throw new Error(error);
-  }
-});
-
 module.exports = {
   createEvent,
   getSingleEvent,
@@ -223,6 +219,4 @@ module.exports = {
   updateEvent,
   addEventFavorite,
   removeEventFavorite,
-  uploadImages,
-  uploadFeatureImage,
 };

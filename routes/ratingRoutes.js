@@ -3,6 +3,6 @@ const { createRating } = require("../controller/ratingController");
 const { authMiddleware } = require("../middlewares/authMiddleware");
 const router = express.Router();
 
-router.post("/", authMiddleware, createRating);
+router.post("/rate", authMiddleware, createRating);
 
 module.exports = router;

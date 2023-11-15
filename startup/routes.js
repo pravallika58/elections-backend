@@ -8,6 +8,7 @@ const eventRouter = require("../routes/eventRoutes");
 const stripeRouter = require("../routes/stripeRoutes");
 const contactRouter = require("../routes/contactRoutes");
 const ratingRouter = require("../routes/ratingRoutes");
+const favoriteLocationRouter = require("../routes/favoriteLocationRoutes");
 
 module.exports = function (app) {
   app.use(express.json());
@@ -16,6 +17,7 @@ module.exports = function (app) {
   app.use(cookie());
 
   app.use("/api", authRouter);
+  app.use("/api", favoriteLocationRouter);
   app.use("/api", eventRouter);
   // app.use("/api/stripe", stripeRouter);
   app.use("/api", contactRouter);

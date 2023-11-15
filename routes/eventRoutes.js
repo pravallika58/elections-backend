@@ -7,38 +7,31 @@ const {
   updateEvent,
   addEventFavorite,
   removeEventFavorite,
-  uploadFeatureImage,
-  uploadImages,
 } = require("../controller/eventController");
 const { authMiddleware } = require("../middlewares/authMiddleware");
-const {
-  uploadPhoto,
-  featureImage,
-  eventsImages,
-} = require("../middlewares/uploadImages");
+const { uploadPhoto, eventImages } = require("../middlewares/uploadImages");
+
 const router = express.Router();
 
-router.post("/create-event", authMiddleware, createEvent);
+router.post(
+  "/create-event",
+  authMiddleware,
+  uploadPhoto.array("images", 5),
+  eventImages,
+  createEvent
+);
 router.post("/add-favorite/:id", authMiddleware, addEventFavorite);
 router.post("/remove-favorite/:id", authMiddleware, removeEventFavorite);
 
 router.get("/:id", getSingleEvent);
 router.get("/", getAllEvents);
 
-router.put("/:id", authMiddleware, updateEvent);
 router.put(
-  "/featureImage/:id",
+  "/:id",
   authMiddleware,
-  uploadPhoto.array("featureimage", 1),
-  featureImage,
-  uploadFeatureImage
-);
-router.put(
-  "/eventImages/:id",
-  authMiddleware,
-  uploadPhoto.array("featureimage", 5),
-  eventsImages,
-  uploadImages
+  uploadPhoto.array("images", 5),
+  eventImages,
+  updateEvent
 );
 
 router.delete("/:id", authMiddleware, deleteEvent);

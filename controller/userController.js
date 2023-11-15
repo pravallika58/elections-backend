@@ -177,6 +177,18 @@ const updateUser = asyncHandler(async (req, res) => {
   }
 });
 
+const getUser = asyncHandler(async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    res.send({
+      data: user,
+      status: true,
+    });
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
 module.exports = {
   registerUser,
   loginUser,
@@ -185,4 +197,5 @@ module.exports = {
   resetPassword,
   logOut,
   updateUser,
+  getUser,
 };
