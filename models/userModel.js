@@ -31,8 +31,8 @@ const userSchema = new mongoose.Schema(
     refreshToken: {
       type: String,
     },
-    imageUrl: {
-      type: String,
+    images: {
+      type: Array,
     },
 
     events: [

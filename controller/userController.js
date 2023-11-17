@@ -1,3 +1,4 @@
+const fs = require("fs");
 const { generateToken } = require("../config/jwtToken");
 const { genrateRefreshToken } = require("../config/refreshToken");
 const User = require("../models/userModel");
@@ -5,6 +6,7 @@ const asyncHandler = require("express-async-handler");
 const sendEmail = require("./emailController");
 const crypto = require("crypto");
 const validateMongoDbId = require("../utils/validateMongoDbId");
+const cloudinaryUploadImage = require("../utils/cloudinary");
 
 const registerUser = asyncHandler(async (req, res) => {
   const { firstname, lastname, email, password, confirmpassword } = req.body;
@@ -155,25 +157,39 @@ const updateUser = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   validateMongoDbId(_id);
   try {
+    const uploader = (path) => cloudinaryUploadImage(path, "images");
+    const urls = [];
+    const files = req.files;
+    for (const file of files) {
+      const { path } = file;
+      const newPath = await uploader(path);
+      urls.push(newPath);
+      fs.unlinkSync(path);
+    }
     const updateUser = await User.findByIdAndUpdate(
       _id,
       {
-        firstname: req?.body?.firstname,
-        lastname: req?.body?.lastname,
-        title: req?.body?.title,
-        email: req?.body?.email,
-        imageUrl: req?.body?.imageUrl,
+        firstname: req.body.firstname,
+        lastname: req.body.lastname,
+        images: urls.map((file) => {
+          return file;
+        }),
       },
       {
         new: true,
       }
     );
+
     res.send({
       data: updateUser,
       status: true,
     });
   } catch (error) {
-    throw new Error(error);
+    console.error(error);
+    res.status(500).send({
+      status: false,
+      message: "Internal Server Error",
+    });
   }
 });
 
