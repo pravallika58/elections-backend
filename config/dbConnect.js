@@ -9,15 +9,17 @@ const client = new MongoClient(uri, {
   },
 });
 
-async function run() {
+const dbConnect = async () => {
   try {
     await client.connect();
     await client.db("elections").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
+  } catch (error) {
+    console.log(error);
   } finally {
     await client.close();
   }
-}
-run().catch(console.dir);
+};
+module.exports = dbConnect;
