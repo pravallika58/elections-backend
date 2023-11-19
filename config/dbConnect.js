@@ -14,11 +14,8 @@ const dbConnect = async () => {
   try {
     await client.connect();
     await client.db("elections").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
   } catch (error) {
-    console.log(error);
+    console.error("Error connecting to MongoDB:", error);
   } finally {
     await client.close();
   }
