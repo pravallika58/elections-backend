@@ -22,4 +22,7 @@ module.exports = function (app) {
   // app.use("/api/stripe", stripeRouter);
   app.use("/api", contactRouter);
   app.use("/api", ratingRouter);
+  app.use("/", (req, res) => {
+    res.send("Welcome to the API");
+  });
 };
