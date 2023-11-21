@@ -16,6 +16,8 @@ const dbConnect = async () => {
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
+  } catch (error) {
+    console.log(error);
   } finally {
     await client.close();
   }
