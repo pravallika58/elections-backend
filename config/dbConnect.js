@@ -1,11 +1,23 @@
-const mongoose = require("mongoose");
-mongoose.set("strictQuery", false);
+const { MongoClient, ServerApiVersion } = require("mongodb");
+const uri =
+  "mongodb+srv://elections:yHyBu3lx9HBi4wBc@cluster0.ul85luw.mongodb.net/?retryWrites=true&w=majority";
 
-const dbConnect = () => {
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
+const dbConnect = async () => {
   try {
-    const connection = mongoose.connect(process.env.MONGODB_URL);
-  } catch (error) {
-    console.log("Server is not connected");
+    await client.connect();
+    await client.db("admin").command({ ping: 1 });
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
+  } finally {
+    await client.close();
   }
 };
 
