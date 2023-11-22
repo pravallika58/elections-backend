@@ -7,7 +7,7 @@ const sendEmail = asyncHandler(async (data, req, res) => {
     port: 587,
     secure: false,
     auth: {
-      user: process.env.MAIL_ID,
+      user: "anuhyashetty98@gmail.com",
       pass: process.env.MP,
     },
   });
